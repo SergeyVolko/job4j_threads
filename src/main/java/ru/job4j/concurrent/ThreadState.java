@@ -1,7 +1,6 @@
 package ru.job4j.concurrent;
 
 public class ThreadState {
-    @SuppressWarnings({"checkstyle:EmptyBlock", "checkstyle:NeedBraces"})
     public static void main(String[] args) {
         Thread first = new Thread(
                 () -> System.out.println(Thread.currentThread().getName())
@@ -15,7 +14,8 @@ public class ThreadState {
         second.start();
         while (first.getState() != Thread.State.TERMINATED
         || second.getState() != Thread.State.TERMINATED) {
-            System.out.print("");
+            System.out.println(first.getState());
+            System.out.println(second.getState());
         }
         System.out.println("Работа нити " + Thread.currentThread().getName() + " завершена.");
     }
