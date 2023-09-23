@@ -1,0 +1,58 @@
+package ru.job4j.thread;
+
+import org.apache.commons.validator.routines.UrlValidator;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URL;
+
+public class Wget implements Runnable {
+    private final String url;
+    private final int speed;
+    private final int ms = 1_000_000;
+
+    public Wget(String url, int speed) {
+        this.url = url;
+        this.speed = speed;
+    }
+
+    @Override
+    public void run() {
+        var file = new File("tmp.xml");
+        try (var in = new URL(url).openStream();
+        var out = new FileOutputStream(file)) {
+            var dataBuffer = new byte[speed];
+            int bytesRead;
+            int totalSleep = 0;
+            while ((bytesRead = in.read(dataBuffer, 0, dataBuffer.length)) != -1) {
+                var downloadAt = System.nanoTime();
+                out.write(dataBuffer, 0, bytesRead);
+                var timeLoad = System.nanoTime() - downloadAt;
+                var delay = timeLoad < ms ? ms - timeLoad : 0;
+                System.out.printf("Read %d bytes : %d delay : %d%n", speed,
+                        timeLoad, delay);
+                totalSleep += delay;
+            }
+            System.out.printf("Total time delay: %d", totalSleep);
+            Thread.sleep(totalSleep / 1000);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        String url = args[0];
+        int speed = Integer.parseInt(args[1]);
+        UrlValidator validator = new UrlValidator();
+        if (!validator.isValid(url)) {
+            throw new IllegalArgumentException("url not valid");
+        }
+        if (speed <= 0) {
+            throw new InterruptedException("speed <= 0");
+        }
+        Thread wget = new Thread(new Wget(url, speed));
+        wget.start();
+        wget.join();
+    }
+}
