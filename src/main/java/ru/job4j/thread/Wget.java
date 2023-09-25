@@ -10,16 +10,18 @@ import java.net.URL;
 public class Wget implements Runnable {
     private final String url;
     private final int speed;
+    private final String filePath;
     private final int ms = 1_000_000;
 
-    public Wget(String url, int speed) {
+    public Wget(String url, int speed, String filePath) {
         this.url = url;
         this.speed = speed;
+        this.filePath = filePath;
     }
 
     @Override
     public void run() {
-        var file = new File("tmp.xml");
+        var file = new File(filePath);
         try (var in = new URL(url).openStream();
         var out = new FileOutputStream(file)) {
             var dataBuffer = new byte[speed];
@@ -42,8 +44,12 @@ public class Wget implements Runnable {
     }
 
     public static void main(String[] args) throws InterruptedException {
+        if (args.length != 3) {
+            throw new IllegalArgumentException("Not all arguments");
+        }
         String url = args[0];
         int speed = Integer.parseInt(args[1]);
+        String file = args[1];
         UrlValidator validator = new UrlValidator();
         if (!validator.isValid(url)) {
             throw new IllegalArgumentException("url not valid");
@@ -51,7 +57,7 @@ public class Wget implements Runnable {
         if (speed <= 0) {
             throw new InterruptedException("speed <= 0");
         }
-        Thread wget = new Thread(new Wget(url, speed));
+        Thread wget = new Thread(new Wget(url, speed, file));
         wget.start();
         wget.join();
     }
