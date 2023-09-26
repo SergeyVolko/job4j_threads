@@ -26,18 +26,15 @@ public class Wget implements Runnable {
         var out = new FileOutputStream(file)) {
             var dataBuffer = new byte[speed];
             int bytesRead;
-            int totalSleep = 0;
             while ((bytesRead = in.read(dataBuffer, 0, dataBuffer.length)) != -1) {
                 var downloadAt = System.nanoTime();
                 out.write(dataBuffer, 0, bytesRead);
                 var timeLoad = System.nanoTime() - downloadAt;
                 var delay = timeLoad < ms ? ms - timeLoad : 0;
+                Thread.sleep(delay / 1000);
                 System.out.printf("Read %d bytes : %d delay : %d%n", speed,
                         timeLoad, delay);
-                totalSleep += delay;
             }
-            System.out.printf("Total time delay: %d", totalSleep);
-            Thread.sleep(totalSleep / 1000);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
