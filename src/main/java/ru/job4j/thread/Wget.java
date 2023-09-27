@@ -11,7 +11,6 @@ public class Wget implements Runnable {
     private final String url;
     private final int speed;
     private final String filePath;
-    private final int ms = 1_000_000;
 
     public Wget(String url, int speed, String filePath) {
         this.url = url;
@@ -22,18 +21,24 @@ public class Wget implements Runnable {
     @Override
     public void run() {
         var file = new File(filePath);
+        var ms = 1000;
         try (var in = new URL(url).openStream();
         var out = new FileOutputStream(file)) {
             var dataBuffer = new byte[speed];
             int bytesRead;
+            var totalRead = 0;
+            System.out.println("Begin load.");
+            var downloadAt = System.nanoTime();
             while ((bytesRead = in.read(dataBuffer, 0, dataBuffer.length)) != -1) {
-                var downloadAt = System.nanoTime();
                 out.write(dataBuffer, 0, bytesRead);
-                var timeLoad = System.nanoTime() - downloadAt;
-                var delay = timeLoad < ms ? ms - timeLoad : 0;
-                Thread.sleep(delay / 1000);
-                System.out.printf("Read %d bytes : %d delay : %d%n", speed,
-                        timeLoad, delay);
+                totalRead += bytesRead;
+            }
+            var timeSleep = totalRead / speed * ms + totalRead % speed;
+            var timeLoadMs = (System.nanoTime() - downloadAt) / ms;
+            System.out.printf("Total read: %d Time load: %d Load ms: %d", totalRead,
+                    timeSleep, timeLoadMs);
+            if (timeSleep > timeLoadMs) {
+                Thread.sleep(timeSleep - timeLoadMs);
             }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
