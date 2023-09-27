@@ -33,12 +33,12 @@ public class Wget implements Runnable {
                 out.write(dataBuffer, 0, bytesRead);
                 totalRead += bytesRead;
             }
-            var timeSleep = totalRead / speed * ms + totalRead % speed;
-            var timeLoadMs = (System.nanoTime() - downloadAt) / ms;
-            System.out.printf("Total read: %d Time load: %d Load ms: %d", totalRead,
-                    timeSleep, timeLoadMs);
-            if (timeSleep > timeLoadMs) {
-                Thread.sleep(timeSleep - timeLoadMs);
+            var timeLoadMeasuredMs = (System.nanoTime() - downloadAt) / ms;
+            var timeLoadCalcMs = totalRead / speed * ms + totalRead % speed;
+            System.out.printf("Total read: %d Time calc load: %d Load measured ms: %d", totalRead,
+                    timeLoadCalcMs, timeLoadMeasuredMs);
+            if (timeLoadCalcMs > timeLoadMeasuredMs) {
+                Thread.sleep(timeLoadCalcMs - timeLoadMeasuredMs);
             }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -51,7 +51,7 @@ public class Wget implements Runnable {
         }
         String url = args[0];
         int speed = Integer.parseInt(args[1]);
-        String file = args[1];
+        String file = args[2];
         UrlValidator validator = new UrlValidator();
         if (!validator.isValid(url)) {
             throw new IllegalArgumentException("url not valid");
