@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.net.URL;
 
 public class Wget implements Runnable {
+    private static final int NANO_IN_MS = 1_000_000;
+    private static final int SPEED_DOWNLOAD = 512;
     private final String url;
     private final int speed;
     private final String filePath;
@@ -21,24 +23,21 @@ public class Wget implements Runnable {
     @Override
     public void run() {
         var file = new File(filePath);
-        var ms = 1000;
         try (var in = new URL(url).openStream();
         var out = new FileOutputStream(file)) {
-            var dataBuffer = new byte[speed];
+            var dataBuffer = new byte[SPEED_DOWNLOAD];
             int bytesRead;
-            var totalRead = 0;
             System.out.println("Begin load.");
             var downloadAt = System.nanoTime();
             while ((bytesRead = in.read(dataBuffer, 0, dataBuffer.length)) != -1) {
                 out.write(dataBuffer, 0, bytesRead);
-                totalRead += bytesRead;
-            }
-            var timeLoadMeasuredMs = (System.nanoTime() - downloadAt) / ms;
-            var timeLoadCalcMs = totalRead / speed * ms + totalRead % speed;
-            System.out.printf("Total read: %d Time calc load: %d Load measured ms: %d", totalRead,
-                    timeLoadCalcMs, timeLoadMeasuredMs);
-            if (timeLoadCalcMs > timeLoadMeasuredMs) {
-                Thread.sleep(timeLoadCalcMs - timeLoadMeasuredMs);
+                var timeLoad = System.nanoTime() - downloadAt;
+                var delay = (int) ((double) SPEED_DOWNLOAD / timeLoad * NANO_IN_MS) / speed;
+                if (delay > 0) {
+                    System.out.printf("Byte read: %d delay: %d ms%n", bytesRead, delay);
+                    Thread.sleep(delay);
+                }
+                downloadAt = System.nanoTime();
             }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
