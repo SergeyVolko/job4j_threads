@@ -28,23 +28,22 @@ public class Wget implements Runnable {
             var dataBuffer = new byte[SPEED_DOWNLOAD];
             int bytesRead;
             System.out.println("Begin load.");
-            var downloadAt = System.nanoTime();
+            var downloadAt = System.currentTimeMillis();
             var totalRead = 0;
-            var delay = 0;
+            var delay = 0L;
             while ((bytesRead = in.read(dataBuffer, 0, dataBuffer.length)) != -1) {
                 out.write(dataBuffer, 0, bytesRead);
-                var timeLoad = System.nanoTime() - downloadAt;
                 totalRead += bytesRead;
-                delay += (int) ((double) SPEED_DOWNLOAD / timeLoad * NANO_IN_MS) / speed;
                 if (totalRead >= speed) {
-                    if (delay > 0) {
+                    delay = System.currentTimeMillis() - downloadAt;
+                    if (delay < speed) {
                         System.out.printf("Byte read: %d delay: %d ms%n", totalRead, delay);
-                        Thread.sleep(delay);
-                        delay = 0;
+                        Thread.sleep(speed - delay);
                     }
                     totalRead = 0;
+                    downloadAt = System.currentTimeMillis();
                 }
-                downloadAt = System.nanoTime();
+
             }
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
