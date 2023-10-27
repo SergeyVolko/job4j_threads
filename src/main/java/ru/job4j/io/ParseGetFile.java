@@ -24,7 +24,7 @@ public class ParseGetFile {
         try (BufferedInputStream inputStream =
                      new BufferedInputStream(new FileInputStream(file))) {
             int data;
-            while ((data = inputStream.read()) > 0) {
+            while ((data = inputStream.read()) != -1) {
                 if (predicate.test(data)) {
                     result.append((char) data);
                 }
