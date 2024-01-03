@@ -29,10 +29,12 @@ public class AccountStorage {
     }
 
 public boolean transfer(int fromId, int toId, int amount) {
-        Account fromAccount = getById(fromId).orElseThrow(IllegalArgumentException::new);
-        Account toAccount =  getById(toId).orElseThrow(IllegalArgumentException::new);
+        Account fromAccount = getById(fromId)
+                .orElseThrow(() -> new IllegalArgumentException("From account not found"));
+        Account toAccount =  getById(toId)
+                .orElseThrow(() -> new IllegalArgumentException("To account not found"));
         if (amount <  0 || fromAccount.amount() < amount) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("From amount less to amount or amount < 0");
         }
         return update(new Account(fromId, fromAccount.amount() - amount))
                 && update(new Account(toId, toAccount.amount() + amount));
